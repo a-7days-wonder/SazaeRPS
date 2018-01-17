@@ -6,8 +6,9 @@
 #1世代につき100回くらい勝負して、勝率がn割以上の遺伝子を選ぶ？
 
 import numpy as np
-import matplotlib.pyplot as pyplot
+import matplotlib.pyplot as plt
 import random
+from decimal import Decimal
 import GeneticAlgorithm as ga
 
 class bot(object): #サザエさん用クラス
@@ -38,7 +39,7 @@ def create_genom(length):
 	genome_list = []
 	for i in range(length):
 		genome_list.append(random.choice(choice))
-	print(genome_list)
+	#print(genome_list)
 	return ga.genom(genome_list, 0)
 
 def select(ga, elite_length):
@@ -70,6 +71,35 @@ def crossover(ga_one, ga_two):
 
 	return genom_list
 
+def next_generation_gene_create(ga, ga_elite, ga_progeny):
+	#現行世代個体集団の評価を低い順にソートする
+	next_generation_genom = sorted(ga, reverse=False, key=lambda u: u.evaluation)
+
+	#エリート集団と子孫集団を次世代へ追加
+	next_generation_genom.extend(ga_elite)
+	next_generation_genom.extend(ga_progeny)
+	
+	return next_generation_genom
+
+def mutation(ga, individual_mutaion, genom_mutation):
+	ga_list = []
+	for i in ga:
+		#個体に対して一定の確率で突然変異が起きる
+		if individual_mutaion > (random.randint(0, 100) / Decimal(100)):
+			genom_list = []
+			for j in i.getGenom():
+				#個体の遺伝子情報一つ一つに対して突然変異が起こる
+				if genom_mutation > (random.randint(0, 100) / Decimal(100)):
+					genom_list.append(random.choice(choice))
+				else:
+					genom_list.append(j)
+			i.setGenom(genom_list)
+			ga_list.append(i)
+		else:
+			ga_list.append(i)
+
+	return ga_list
+
 def judge(player, bot):
 	#勝ち:1 負け:2 あいこ:3
 	if player == 'G':
@@ -96,7 +126,7 @@ def battle(player):
 	draw = 0
 	sazae = bot()
 	#print('----------')
-	for count in range(300):
+	for count in range(100):
 		#1回目と2回目はランダムで手を出す
 		if count < 2:
 			player.result = random.choice(choice)
@@ -152,7 +182,7 @@ def battle(player):
 		sazae.updateResult()
 
 	eval = float(win) / (float)(win + lose + draw) * 100
-	print('勝率: '+str(eval)+'%')
+	#print('勝率: '+str(eval)+'%')
 	return eval
 
 choice = ['G', 'C', 'P']
@@ -173,15 +203,15 @@ probPP = [37.07865169, 59.5505618, 3.370786517]
 # 遺伝子情報の長さ
 GENOM_LENGTH = 9
 # 遺伝子集団の大きさ
-MAX_GENOM_LIST = 100
+MAX_GENOM_LIST = 30
 # 遺伝子選択数
-SELECT_GENOM = 20
+SELECT_GENOM = 3
 # 個体突然変異確率
-INDIVIDUAL_MUTATION = 0.1
+INDIVIDUAL_MUTATION = 0.01
 # 遺伝子突然変異確率
-GENOM_MUTATION = 0.1
+GENOM_MUTATION = 0.01
 # 繰り返す世代数
-MAX_GENERATION = 40
+MAX_GENERATION = 50
 
 if __name__ == '__main__':
 	current_generation_individual_group = []
@@ -199,3 +229,29 @@ if __name__ == '__main__':
 		progeny_gene = []
 		for j in range(SELECT_GENOM):
 			progeny_gene.extend(crossover(elite_genes[j-1], elite_genes[j]))
+		#次世代個体集団を現行世代、エリート集団、子孫集団から作成
+		next_generation_individual_group = next_generation_gene_create(current_generation_individual_group, elite_genes, progeny_gene)
+		#次世代個体集団全ての個体に突然変異を施す
+		next_generation_individual_group = mutation(next_generation_individual_group, INDIVIDUAL_MUTATION, GENOM_MUTATION)
+
+		#1世代の進化計算終了。評価に移る。
+
+		#各個体適用度を配列化
+		fits = [j.getEvaluation() for j in current_generation_individual_group]
+
+		#進化結果を評価
+		min_ = min(fits)
+		max_ = max(fits)
+		ave_ = sum(fits) / len(fits)
+
+		#現行世代の進化結果を出力
+		print "-----第{}世代の結果-----".format(i+1)
+		print "  Min: {}".format(min_)
+		print "  Max: {}".format(max_)
+		print "  Ave: {}".format(ave_)
+
+		#現行世代と次世代を入れ替える
+		current_generation_individual_group = next_generation_individual_group
+
+	#最終結果の出力
+	print "最も優れた個体は{}".format(elite_genes[0].getGenom())
