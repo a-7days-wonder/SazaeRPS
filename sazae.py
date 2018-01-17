@@ -5,16 +5,17 @@
 #出す手をランダムで生成し、評価関数によって進化する
 #1世代につき100回くらい勝負して、勝率がn割以上の遺伝子を選ぶ？
 
-import numpy as numpy
+import numpy as np
 import matplotlib.pyplot as pyplot
 import random
+import GeneticAlgorithm as ga
 
-class RPS():
+class bot(object): #サザエさん用クラス
 	def __init__(self):
 		#初期化
-		self.result = ''
-		self.preResult = ''
-		self.prepreResult = ''
+		self.result = None
+		self.preResult = None
+		self.prepreResult = None
 
 	def updateResult(self):
 		#対戦履歴の更新
@@ -33,6 +34,41 @@ def choose(candidates, probabilities):
     #どれにも当てはまらなかった場合はNoneを返す
     return None
 
+def create_genom(length):
+	genome_list = []
+	for i in range(length):
+		genome_list.append(random.choice(choice))
+	print(genome_list)
+	return ga.genom(genome_list, 0)
+
+def select(ga, elite_length):
+	# 現行世代個体集団の評価を高い順番にソートする
+    sort_result = sorted(ga, reverse=True, key=lambda u: u.evaluation)
+    # 一定の上位を抽出する
+    result = [sort_result.pop(0) for i in range(elite_length)]
+    return result
+
+def crossover(ga_one, ga_two):
+	#子孫を格納するリストを生成
+	genom_list = []
+
+	#入れ替える2点を設定
+	cross_one = random.randint(0, GENOM_LENGTH)
+	cross_two = random.randint(cross_one, GENOM_LENGTH)
+
+	#遺伝子を取り出す
+	one = ga_one.getGenom()
+	two = ga_two.getGenom()
+
+	#交叉させる
+	progeny_one = one[:cross_one] + two[cross_one:cross_two] + one[cross_two:]
+	progeny_two = two[:cross_one] + one[cross_one:cross_two] + two[cross_two:]
+
+	#genomクラスのインスタンスを生成して子孫をリストに格納
+	genom_list.append(ga.genom(progeny_one, 0))
+	genom_list.append(ga.genom(progeny_two, 0))
+
+	return genom_list
 
 def judge(player, bot):
 	#勝ち:1 負け:2 あいこ:3
@@ -54,64 +90,74 @@ def judge(player, bot):
 		elif bot == 'C':
 			return 2
 
-def battle(player, bot):
+def battle(player):
 	win = 0
 	lose = 0
 	draw = 0
-	print('----------')
-	for count in range(100):
-		player.result = random.choice(choice)
-		#1回目と2回目はサザエさんはランダムで手を出す
+	sazae = bot()
+	#print('----------')
+	for count in range(300):
+		#1回目と2回目はランダムで手を出す
 		if count < 2:
-			bot.result = random.choice(choice)
+			player.result = random.choice(choice)
+			sazae.result = random.choice(choice)
 		#3回目以降は直前の2つの手によって条件分岐
 		else:
-			if bot.prepreResult == 'G':
-				if bot.preResult == 'G':
-					bot.result = choose(choice, probGG)
-				if bot.preResult == 'C':
-					bot.result = choose(choice, probGC)
-				if bot.preResult == 'P':
-					bot.result = choose(choice, probGP)
+			if sazae.prepreResult == 'G':
+				if sazae.preResult == 'G':
+					player.result = player.genom_list[0]
+					sazae.result = choose(choice, probGG)
+				if sazae.preResult == 'C':
+					player.result = player.genom_list[1]
+					sazae.result = choose(choice, probGC)
+				if sazae.preResult == 'P':
+					player.result = player.genom_list[2]
+					sazae.result = choose(choice, probGP)
 
-			if bot.prepreResult == 'C':
-				if bot.preResult == 'G':
-					bot.result = choose(choice, probCG)
-				if bot.preResult == 'C':
-					bot.result = choose(choice, probCC)
-				if bot.preResult == 'P':
-					bot.result = choose(choice, probCP)
+			if sazae.prepreResult == 'C':
+				if sazae.preResult == 'G':
+					player.result = player.genom_list[3]
+					sazae.result = choose(choice, probCG)
+				if sazae.preResult == 'C':
+					player.result = player.genom_list[4]
+					sazae.result = choose(choice, probCC)
+				if sazae.preResult == 'P':
+					player.result = player.genom_list[5]
+					sazae.result = choose(choice, probCP)
 
-			if bot.prepreResult == 'P':
-				if bot.preResult == 'G':
-					bot.result = choose(choice, probPG)
-				if bot.preResult == 'C':
-					bot.result = choose(choice, probPC)
-				if bot.preResult == 'P':
-					bot.result = choose(choice, probPP)
+			if sazae.prepreResult == 'P':
+				if sazae.preResult == 'G':
+					player.result = player.genom_list[6]
+					sazae.result = choose(choice, probPG)
+				if sazae.preResult == 'C':
+					player.result = player.genom_list[7]
+					sazae.result = choose(choice, probPC)
+				if sazae.preResult == 'P':
+					player.result = player.genom_list[8]
+					sazae.result = choose(choice, probPP)
 
 		#ジャッジ
-		print('ga: '+player.result+'')
-		print('sazae: '+bot.result+'')
-		if judge(player.result, bot.result) == 1:
-			print('Win')
+		#print('ga: '+player.result+'')
+		#print('sazae: '+bot.result+'')
+		if judge(player.result, sazae.result) == 1:
+			#print('Win')
 			win += 1
-		elif judge(player.result, bot.result) == 2:
-			print('Lose')
+		elif judge(player.result, sazae.result) == 2:
+			#print('Lose')
 			lose += 1
 		else:
-			print('Draw')
+			#print('Draw')
 			draw += 1
-		print('----------')
-		bot.updateResult()
+		#print('----------')
+		sazae.updateResult()
 
-	result = float(win) / (float)(win + lose + draw) * 100
-	print('勝率: '+str(result)+'%')
+	eval = float(win) / (float)(win + lose + draw) * 100
+	print('勝率: '+str(eval)+'%')
+	return eval
 
-ga = RPS()
-sazae = RPS()
 choice = ['G', 'C', 'P']
 
+#probMN 2つ前がM,1つ前がNの時、サザエさんが次に[G,C,P]のそれぞれを出す確率
 probGG = [7.52688172, 51.61290323, 40.86021505]
 probGC = [23.42857143, 22.85714286, 53.71428571]
 probGP = [17.8343949, 55.41401274, 26.75159236]
@@ -124,4 +170,32 @@ probPG = [31.12582781, 49.66887417, 19.20529801]
 probPC = [53.06122449, 20.40816327, 26.53061224]
 probPP = [37.07865169, 59.5505618, 3.370786517]
 
-battle(ga, sazae)
+# 遺伝子情報の長さ
+GENOM_LENGTH = 9
+# 遺伝子集団の大きさ
+MAX_GENOM_LIST = 100
+# 遺伝子選択数
+SELECT_GENOM = 20
+# 個体突然変異確率
+INDIVIDUAL_MUTATION = 0.1
+# 遺伝子突然変異確率
+GENOM_MUTATION = 0.1
+# 繰り返す世代数
+MAX_GENERATION = 40
+
+if __name__ == '__main__':
+	current_generation_individual_group = []
+	for i in range(MAX_GENOM_LIST):
+		current_generation_individual_group.append(create_genom(GENOM_LENGTH))
+
+	for i in range(MAX_GENERATION):
+		#遺伝子を評価し、評価値を代入
+		for j in range(MAX_GENOM_LIST):
+			evaluation_result = battle(current_generation_individual_group[j])
+			current_generation_individual_group[j].setEvaluation(evaluation_result)
+		#エリート個体を選択
+		elite_genes = select(current_generation_individual_group, SELECT_GENOM)
+		#エリート遺伝子を交叉させリストに格納
+		progeny_gene = []
+		for j in range(SELECT_GENOM):
+			progeny_gene.extend(crossover(elite_genes[j-1], elite_genes[j]))
