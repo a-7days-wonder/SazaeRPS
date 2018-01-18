@@ -75,6 +75,10 @@ def next_generation_gene_create(ga, ga_elite, ga_progeny):
 	#現行世代個体集団の評価を低い順にソートする
 	next_generation_genom = sorted(ga, reverse=False, key=lambda u: u.evaluation)
 
+	# 追加するエリート集団と子孫集団の合計ぶんを取り除く
+	for i in range(0, len(ga_elite) + len(ga_progeny)):
+		next_generation_genom.pop(0)
+
 	#エリート集団と子孫集団を次世代へ追加
 	next_generation_genom.extend(ga_elite)
 	next_generation_genom.extend(ga_progeny)
@@ -125,7 +129,6 @@ def battle(player):
 	lose = 0
 	draw = 0
 	sazae = bot()
-	#print('----------')
 	for count in range(100):
 		#1回目と2回目はランダムで手を出す
 		if count < 2:
@@ -166,23 +169,15 @@ def battle(player):
 					player.result = player.genom_list[8]
 					sazae.result = choose(choice, probPP)
 
-		#ジャッジ
-		#print('ga: '+player.result+'')
-		#print('sazae: '+bot.result+'')
 		if judge(player.result, sazae.result) == 1:
-			#print('Win')
 			win += 1
 		elif judge(player.result, sazae.result) == 2:
-			#print('Lose')
 			lose += 1
 		else:
-			#print('Draw')
 			draw += 1
-		#print('----------')
 		sazae.updateResult()
 
 	eval = float(win) / (float)(win + lose + draw) * 100
-	#print('勝率: '+str(eval)+'%')
 	return eval
 
 choice = ['G', 'C', 'P']
@@ -203,9 +198,9 @@ probPP = [37.07865169, 59.5505618, 3.370786517]
 # 遺伝子情報の長さ
 GENOM_LENGTH = 9
 # 遺伝子集団の大きさ
-MAX_GENOM_LIST = 30
+MAX_GENOM_LIST = 100
 # 遺伝子選択数
-SELECT_GENOM = 3
+SELECT_GENOM = 5
 # 個体突然変異確率
 INDIVIDUAL_MUTATION = 0.01
 # 遺伝子突然変異確率
@@ -227,7 +222,7 @@ if __name__ == '__main__':
 		elite_genes = select(current_generation_individual_group, SELECT_GENOM)
 		#エリート遺伝子を交叉させリストに格納
 		progeny_gene = []
-		for j in range(SELECT_GENOM):
+		for j in range(0, SELECT_GENOM):
 			progeny_gene.extend(crossover(elite_genes[j-1], elite_genes[j]))
 		#次世代個体集団を現行世代、エリート集団、子孫集団から作成
 		next_generation_individual_group = next_generation_gene_create(current_generation_individual_group, elite_genes, progeny_gene)
