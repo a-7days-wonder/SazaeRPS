@@ -198,20 +198,23 @@ probPP = [37.07865169, 59.5505618, 3.370786517]
 # 遺伝子情報の長さ
 GENOM_LENGTH = 9
 # 遺伝子集団の大きさ
-MAX_GENOM_LIST = 200
+MAX_GENOM_LIST = 300
 # 遺伝子選択数
-SELECT_GENOM = 10
-# 交叉確率
-CROSSOVER = 0.8
+SELECT_GENOM = 15
 # 個体突然変異確率
-INDIVIDUAL_MUTATION = 0.05
+INDIVIDUAL_MUTATION = 0.1
 # 遺伝子突然変異確率
-GENOM_MUTATION = 0.05
+GENOM_MUTATION = 0.1
 # 繰り返す世代数
-MAX_GENERATION = 100
+MAX_GENERATION = 50
 
 if __name__ == '__main__':
 	current_generation_individual_group = []
+	graph_max = []
+	graph_min = []
+	graph_ave = []
+	highest_max = 0
+
 	for i in range(MAX_GENOM_LIST):
 		current_generation_individual_group.append(create_genom(GENOM_LENGTH))
 
@@ -225,8 +228,7 @@ if __name__ == '__main__':
 		#エリート遺伝子を交叉させリストに格納
 		progeny_gene = []
 		for j in range(1, SELECT_GENOM):
-			if CROSSOVER > (random.randint(0,100) / Decimal(100)):
-				progeny_gene.extend(crossover(elite_genes[j-1], elite_genes[j]))
+			progeny_gene.extend(crossover(elite_genes[j-1], elite_genes[j]))
 		#次世代個体集団を現行世代、エリート集団、子孫集団から作成
 		next_generation_individual_group = next_generation_gene_create(current_generation_individual_group, elite_genes, progeny_gene)
 		#次世代個体集団全ての個体に突然変異を施す
@@ -242,17 +244,36 @@ if __name__ == '__main__':
 		max_ = max(fits)
 		ave_ = sum(fits) / len(fits)
 
+		if max_ > highest_max:
+			highest_max = max_
+
+		#グラフ用に最大値を保存
+		graph_max.append(max_)
+		graph_min.append(min_)
+		graph_ave.append(ave_)
+
 		#現行世代の進化結果を出力
 		print "-----第{}世代の結果-----".format(i+1)
 		print "  Min: {}".format(min_)
 		print "  Max: {}".format(max_)
 		print "  Ave: {}".format(ave_)
 
-		ax = plt.subplots(1, 1)
-
-
 		#現行世代と次世代を入れ替える
 		current_generation_individual_group = next_generation_individual_group
 
 	#最終結果の出力
 	print "最も優れた個体は{}".format(elite_genes[0].getGenom())
+	print "勝率の最高値は{}%". format(highest_max)
+
+	#グラフを表示
+	x = np.arange(MAX_GENERATION)
+	y_max = np.array(graph_max)
+	y_min = np.array(graph_min)
+	y_ave = np.array(graph_ave)
+	plt.plot(x, y_max, label='max')
+	plt.plot(x, y_min, label='min')
+	plt.plot(x, y_ave, label='ave')
+	plt.legend()
+	plt.grid()
+	plt.ylim(0,100)
+	plt.show()
