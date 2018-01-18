@@ -198,15 +198,17 @@ probPP = [37.07865169, 59.5505618, 3.370786517]
 # 遺伝子情報の長さ
 GENOM_LENGTH = 9
 # 遺伝子集団の大きさ
-MAX_GENOM_LIST = 100
+MAX_GENOM_LIST = 200
 # 遺伝子選択数
-SELECT_GENOM = 5
+SELECT_GENOM = 10
+# 交叉確率
+CROSSOVER = 0.8
 # 個体突然変異確率
-INDIVIDUAL_MUTATION = 0.01
+INDIVIDUAL_MUTATION = 0.05
 # 遺伝子突然変異確率
-GENOM_MUTATION = 0.01
+GENOM_MUTATION = 0.05
 # 繰り返す世代数
-MAX_GENERATION = 50
+MAX_GENERATION = 100
 
 if __name__ == '__main__':
 	current_generation_individual_group = []
@@ -222,8 +224,9 @@ if __name__ == '__main__':
 		elite_genes = select(current_generation_individual_group, SELECT_GENOM)
 		#エリート遺伝子を交叉させリストに格納
 		progeny_gene = []
-		for j in range(0, SELECT_GENOM):
-			progeny_gene.extend(crossover(elite_genes[j-1], elite_genes[j]))
+		for j in range(1, SELECT_GENOM):
+			if CROSSOVER > (random.randint(0,100) / Decimal(100)):
+				progeny_gene.extend(crossover(elite_genes[j-1], elite_genes[j]))
 		#次世代個体集団を現行世代、エリート集団、子孫集団から作成
 		next_generation_individual_group = next_generation_gene_create(current_generation_individual_group, elite_genes, progeny_gene)
 		#次世代個体集団全ての個体に突然変異を施す
@@ -244,6 +247,9 @@ if __name__ == '__main__':
 		print "  Min: {}".format(min_)
 		print "  Max: {}".format(max_)
 		print "  Ave: {}".format(ave_)
+
+		ax = plt.subplots(1, 1)
+
 
 		#現行世代と次世代を入れ替える
 		current_generation_individual_group = next_generation_individual_group
