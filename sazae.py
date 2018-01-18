@@ -1,10 +1,5 @@
 # -*- coding: utf-8 -*-
 
-#サザエさんのじゃんけんのパターンを学習するプログラム
-#サザエさん→前2回の手によって確率で分岐して手を出す
-#出す手をランダムで生成し、評価関数によって進化する
-#1世代につき100回くらい勝負して、勝率がn割以上の遺伝子を選ぶ？
-
 import numpy as np
 import matplotlib.pyplot as plt
 import random
